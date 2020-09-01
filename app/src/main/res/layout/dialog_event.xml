@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/dialog_event_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        android:text="Microbiologie 1"
+
+        app:drawableLeftCompat="@drawable/ic_school"
+        android:drawablePadding="10dp"
+
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginTop="10dp"/>
+
+    <LinearLayout
+        android:id="@+id/dialog_event_time_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+
+        android:layout_below="@id/dialog_event_title"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="15dp">
+
+
+        <TextView
+            android:id="@+id/dialog_event_time_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:textSize="20sp"
+            android:textColor="@android:color/black"
+            android:text="14h00"
+
+            app:drawableLeftCompat="@drawable/ic_time"
+            android:drawablePadding="10dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:text="→"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            android:textSize="25sp"
+
+            android:layout_marginTop="-5dp"
+            android:layout_gravity="center_vertical"/>
+
+        <TextView
+            android:id="@+id/dialog_event_time_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:textSize="20sp"
+            android:textColor="@android:color/black"
+            android:text="15h30" />
+
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/dialog_event_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:text="DEMANDE SALLE DEVU"
+
+        app:drawableLeftCompat="@drawable/ic_location"
+        android:drawablePadding="10dp"
+
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="15dp"
+
+        android:layout_below="@id/dialog_event_time_layout"/>
+
+    <TextView
+        android:id="@+id/dialog_event_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:text="A B C D"
+
+        app:drawableLeftCompat="@drawable/ic_description"
+        android:drawablePadding="10dp"
+
+        android:layout_below="@id/dialog_event_location"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="15dp"/>
+
+</RelativeLayout>
