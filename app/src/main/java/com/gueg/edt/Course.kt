@@ -3,6 +3,7 @@ package com.gueg.edt
 import org.threeten.bp.LocalDate
 import org.threeten.bp.LocalTime
 
+
 class Course {
     lateinit var name: String
     lateinit var location: String

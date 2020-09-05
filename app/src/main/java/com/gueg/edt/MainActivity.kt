@@ -1,6 +1,7 @@
 package com.gueg.edt
 
 import android.annotation.SuppressLint
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -8,20 +9,20 @@ import android.view.ViewGroup
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import de.tobiasschuerg.weekview.view.WeekView
+import com.gueg.edt.weekview.view.WeekView
 import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
 
-    // TODO date de fin URL
-    // TODO grossir texte events
-    // TODO AM/PM
-    // TODO prendre tout l'écran
     // TODO changer semaine
-    // TODO icône
-    // TODO fuseau horaire
-    // TODO choisir couleurs matières manuellement
+    // TODO grossir texte events
+    // TODO sélectionner 1 jour = zoom
+
+    fun isConnected(): Boolean {
+        val cm = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        return cm.activeNetworkInfo != null && cm.activeNetworkInfo.isConnected
+    }
 
     private val URL_FILENAME = "url.txt"
 

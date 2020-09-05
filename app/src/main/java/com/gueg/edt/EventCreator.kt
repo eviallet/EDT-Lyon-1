@@ -1,7 +1,7 @@
 package com.gueg.edt
 
 import android.graphics.Color
-import de.tobiasschuerg.weekview.data.Event
+import com.gueg.edt.weekview.data.Event
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -11,17 +11,21 @@ object EventCreator {
 
     private val coursesColor = HashMap<String, Int>()
 
+    private val colors = parseColors("#58afbf", "#35b9bd", "#bbbbbb", "#58afbf", "#58afbf")
+    private var currentColorIndex = 0
+
     fun createEventFromCourse(course: Course) : Event.Single {
 
         if(!coursesColor.containsKey(course.name))
-            coursesColor[course.name] = randomColor()
+            coursesColor[course.name] = colors[currentColorIndex]++
+
 
         return Event.Single(
             id = random.nextLong(),
             date = course.date,
-            title = course.description,
-            shortTitle = course.name,
-            subTitle = course.location,
+            description = course.description,
+            name = course.name,
+            location = course.location,
             startTime = course.startTime,
             endTime = course.endTime,
             textColor = Color.WHITE,
@@ -29,7 +33,13 @@ object EventCreator {
         )
     }
 
-    private fun randomColor(): Int {
-        return Color.argb(255, random.nextInt(256), random.nextInt(256), random.nextInt(256))
+    private fun parseColors(vararg strs: String) : IntArray {
+        val array = IntArray(strs.size)
+
+        for(i in array.indices)
+            array[i] = Color.parseColor(strs[i])
+
+        return array
     }
+
 }

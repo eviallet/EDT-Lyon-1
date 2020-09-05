@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <de.tobiasschuerg.weekview.view.WeekView
+    <com.gueg.edt.weekview.view.WeekView
         android:id="@+id/weekView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

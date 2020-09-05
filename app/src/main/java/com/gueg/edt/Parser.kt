@@ -1,50 +1,68 @@
 package com.gueg.edt
 
-import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import java.io.*
 import java.net.URL
 import java.net.URLConnection
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 object Parser {
 
     private const val SCHEDULE_FILENAME = "schedule.ics"
-    private var context: Context ?= null
+    private var activity: MainActivity ?= null
 
 
-
-    fun with(context: Context) : Parser {
-        this.context = context
+    fun with(activity: MainActivity) : Parser {
+        this.activity = activity
         return this
     }
 
     fun shouldDownload() : Boolean {
-        val file = File(context!!.cacheDir, SCHEDULE_FILENAME)
+        val file = File(activity!!.cacheDir, SCHEDULE_FILENAME)
         if(!file.exists())
             return true
 
         val millis = file.lastModified()
         val curTime = System.currentTimeMillis()
 
-        Log.d(":-:","shouldDownload = " + (curTime - millis > 1000 * 60 * 24 * 2))
+        val shouldUpdate = curTime - millis > 1000 * 3600 * 12
+        Log.d(":-:", "shouldDownload = $shouldUpdate")
 
-        return curTime - millis > 1000 * 60 * 24 * 2 // true if last update was more than 2 days ago
+        return shouldUpdate
     }
 
-    fun download(url : String, listener: DownloadListener) {
+    fun download(url: String, listener: DownloadListener) {
         if(url.isEmpty())
             return
 
+        if(activity!!.isConnected()) {
+            Toast.makeText(activity, "Non connecté à Internet.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val start = url.substring(0, url.indexOf("firstDate="))
+
+        val calendar = Calendar.getInstance()
+        val startDate = Date(calendar.get(Calendar.YEAR), Calendar.SEPTEMBER, 1)
+        val lastDate = Date(calendar.get(Calendar.YEAR)+1, Calendar.AUGUST, 31)
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+        val newUrl = start + "firstDate=" + formatter.format(startDate) + "&lastDate=" + formatter.format(lastDate)
+
+
         Thread {
-            val cn: URLConnection = URL(url).openConnection()
+            val cn: URLConnection = URL(newUrl).openConnection()
             cn.connect()
             val stream: InputStream = cn.getInputStream()
             val bytes = stream.readBytes()
             stream.close()
 
-            val file = File(context!!.cacheDir, SCHEDULE_FILENAME)
+            val file = File(activity!!.cacheDir, SCHEDULE_FILENAME)
             if(file.exists())
                 file.delete()
 
@@ -59,7 +77,7 @@ object Parser {
 
         // ========== Load text from downloaded or cached file ==========
 
-        val file = File(context!!.cacheDir, SCHEDULE_FILENAME)
+        val file = File(activity!!.cacheDir, SCHEDULE_FILENAME)
         val list = ArrayList<String>()
 
         try {
@@ -82,6 +100,8 @@ object Parser {
         var shouldRead = true
         var currentLine = 0
 
+        val offsetFromUtc: Long = TimeZone.getDefault().getOffset(Date().time)/(1000*3600).toLong()
+
         while(shouldRead) {
             var line = list[currentLine]
 
@@ -92,7 +112,7 @@ object Parser {
                 while(line != "END:VEVENT") {
                     line = list[currentLine++]
                     if(!line.contains(":")) {
-                        line = line.substring(1,line.length).replace("\r\n","")
+                        line = line.substring(1, line.length).replace("\r\n", "")
                         when(lastTag) {
                             "SUMMARY" -> course.name += line
                             "LOCATION" -> course.location += line
@@ -102,24 +122,33 @@ object Parser {
                     }
 
                     val tag = line.split(":")[0]
-                    var value = line.split(":")[1].replace("\r\n","")
+                    var value = line.split(":")[1].replace("\r\n", "").replace("\\,", ",")
 
                     when(tag) {
                         "DTSTART" -> {
-                            val dateTime = LocalDateTime.parse(value, DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'"))
+                            val dateTime = LocalDateTime.parse(
+                                value,
+                                DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
+                            )
                             course.date = dateTime.toLocalDate()
-                            course.startTime = dateTime.toLocalTime()
+                            course.startTime = dateTime.toLocalTime().plusHours(offsetFromUtc)
                         }
                         "DTEND" -> {
-                            val dateTime : LocalDateTime = LocalDateTime.parse(value, DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'"))
-                            course.endTime = dateTime.toLocalTime()
+                            val dateTime: LocalDateTime = LocalDateTime.parse(
+                                value, DateTimeFormatter.ofPattern(
+                                    "yyyyMMdd'T'HHmmss'Z'"
+                                )
+                            )
+                            course.endTime = dateTime.toLocalTime().plusHours(offsetFromUtc)
                         }
                         "SUMMARY" -> course.name = value
                         "LOCATION" -> course.location = value
                         "DESCRIPTION" -> {
-                            while(value.startsWith("\\n"))
-                                value = value.replaceFirst("\\n","")
-                            course.description = value.substring(0, value.indexOf("(Exported")).replace("\\n","  ")
+                            while (value.startsWith("\\n"))
+                                value = value.replaceFirst("\\n", "")
+                            if (value.indexOf("(Exported") != -1)
+                                value = value.substring(0, value.indexOf("(Exported"))
+                            course.description = value.replace("\\n", "  ")
                         }
                     }
                     lastTag = tag
