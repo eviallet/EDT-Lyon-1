@@ -7,7 +7,6 @@ import org.threeten.bp.format.DateTimeFormatter
 import java.io.*
 import java.net.URL
 import java.net.URLConnection
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -15,7 +14,6 @@ object Parser {
 
     private const val SCHEDULE_FILENAME = "schedule.ics"
     private var activity: MainActivity ?= null
-
 
     fun with(activity: MainActivity) : Parser {
         this.activity = activity
@@ -37,26 +35,13 @@ object Parser {
     }
 
     fun download(url: String, listener: DownloadListener) {
-        if(url.isEmpty())
-            return
-
         if(activity!!.isConnected()) {
             Toast.makeText(activity, "Non connecté à Internet.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val start = url.substring(0, url.indexOf("firstDate="))
-
-        val calendar = Calendar.getInstance()
-        val startDate = Date(calendar.get(Calendar.YEAR), Calendar.SEPTEMBER, 1)
-        val lastDate = Date(calendar.get(Calendar.YEAR)+1, Calendar.AUGUST, 31)
-        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-
-        val newUrl = start + "firstDate=" + formatter.format(startDate) + "&lastDate=" + formatter.format(lastDate)
-
-
         Thread {
-            val cn: URLConnection = URL(newUrl).openConnection()
+            val cn: URLConnection = URL(url).openConnection()
             cn.connect()
             val stream: InputStream = cn.getInputStream()
             val bytes = stream.readBytes()

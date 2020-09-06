@@ -1,6 +1,7 @@
 package com.gueg.edt
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.Menu
@@ -9,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.gueg.edt.weekview.WeekViewWrapper
 import com.gueg.edt.weekview.view.WeekView
 import java.io.File
 
@@ -25,10 +27,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val URL_FILENAME = "url.txt"
+    private var url: String = ""
+
+    private val ACTIVITY_LOGIN = 0
 
     private lateinit var weekView : WeekView
+    private lateinit var weekViewWrapper : WeekViewWrapper
 
-    private var url: String = ""
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         weekView = findViewById(R.id.weekView)
+        weekViewWrapper = WeekViewWrapper(weekView)
 
         // add an onClickListener for each event
         weekView.setLessonClickListener { eventView ->
@@ -49,8 +55,10 @@ class MainActivity : AppCompatActivity() {
 
         Parser.with(this)
 
-        if(!readUrlFromFile())
+        if(!readUrlFromFile()) {
+            startLoginActivity()
             return
+        }
 
         if(Parser.shouldDownload())
             updateCalendar()
@@ -69,8 +77,7 @@ class MainActivity : AppCompatActivity() {
     fun updateWeekView() {
         runOnUiThread {
             val courses = Parser.extract()
-            for (course in courses)
-                weekView.addEvent(EventCreator.createEventFromCourse(course))
+            weekViewWrapper.loadWeeks(courses)
         }
     }
 
@@ -104,12 +111,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_refresh -> {
             weekView.removeViews(1, weekView.childCount - 1)
-
-            Parser.download(url, object : Parser.DownloadListener {
-                override fun onDownloadFinished() {
-                    updateWeekView()
-                }
-            })
+            updateCalendar()
             true
         }
 
@@ -139,6 +141,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun startLoginActivity() {
+        val intent = Intent(this, LoginScreen::class.java)
+        startActivityForResult(intent, ACTIVITY_LOGIN)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(requestCode == ACTIVITY_LOGIN && resultCode == RESULT_OK) {
+            url = data!!.getStringExtra(LoginScreen.ADE_URL_EXTRA)!!
+            //updateCalendar()
+        }
+
+        super.onActivityResult(requestCode, resultCode, data)
+    }
 
 }
 
