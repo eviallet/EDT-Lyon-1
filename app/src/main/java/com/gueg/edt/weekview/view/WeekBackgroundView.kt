@@ -40,6 +40,8 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
         }
     }
 
+    lateinit var daysOfMonth: List<LocalDate>
+
     private var isInScreenshotMode = false
 
     val topOffsetPx: Int = context.dipToPixelI(32f)
@@ -59,9 +61,6 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
     private var endTime: LocalTime = LocalTime.of(20, 0)
 
     var scalingFactor = 1f
-        /**
-         * Updated the scaling factor and redraws the view.
-         */
         set(value) {
             field = value
             requestLayout()

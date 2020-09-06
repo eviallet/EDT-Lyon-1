@@ -5,6 +5,8 @@ import android.graphics.Color
 import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.RelativeLayout
 import androidx.annotation.RequiresApi
@@ -37,7 +39,7 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
 
     private val accentColor: Int
 
-    //private val scaleGestureDetector: ScaleGestureDetector
+    private val scaleGestureDetector: ScaleGestureDetector
     private val weekViewConfig: WeekViewConfig
 
     var eventConfig = EventConfig()
@@ -56,10 +58,10 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
 
         addView(backgroundView)
 
-        //scaleGestureDetector = ScaleGestureDetector(context, ScaleListener())
+        scaleGestureDetector = ScaleGestureDetector(context, ScaleListener())
     }
 
-    /*
+
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             val factor = weekViewConfig.scalingFactor * detector.scaleFactor
@@ -82,7 +84,7 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         super.dispatchTouchEvent(event)
         return scaleGestureDetector.onTouchEvent(event)
-    }*/
+    }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     fun setEventTransitionName(transitionName: String) {

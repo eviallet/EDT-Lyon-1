@@ -1,7 +1,6 @@
 package com.gueg.edt
 
 import android.util.Log
-import android.widget.Toast
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import java.io.*
@@ -35,10 +34,10 @@ object Parser {
     }
 
     fun download(url: String, listener: DownloadListener) {
-        if(activity!!.isConnected()) {
+        /*if(activity!!.isConnected()) {
             Toast.makeText(activity, "Non connecté à Internet.", Toast.LENGTH_SHORT).show()
             return
-        }
+        }*/
 
         Thread {
             val cn: URLConnection = URL(url).openConnection()

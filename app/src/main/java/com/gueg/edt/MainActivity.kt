@@ -4,11 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
-import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.gueg.edt.weekview.WeekViewWrapper
 import com.gueg.edt.weekview.view.WeekView
@@ -54,6 +53,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         Parser.with(this)
+
+        Log.d(":-:","MainActivity - onCreate")
+
+        // if activity not returning from ACTIVITY_LOGIN
+        if (intent != null) {
+            if(intent.data != null) {
+                if(intent.getStringExtra(LoginActivity.ADE_URL_EXTRA) != null) {
+                    return
+                }
+            }
+        }
+
+        Log.d(":-:","MainActivity - onCreate - reading URL from cache")
 
         if(!readUrlFromFile()) {
             startLoginActivity()
@@ -103,6 +115,13 @@ class MainActivity : AppCompatActivity() {
         file.writeText(url)
     }
 
+    private fun removeUrlFile() {
+        val file = File(cacheDir, URL_FILENAME)
+
+        if(file.exists())
+            file.delete()
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.appbar, menu)
         return true
@@ -116,22 +135,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         R.id.action_url -> {
-            val editText = EditText(this)
-            AlertDialog.Builder(this)
-                .setView(editText)
-                .setPositiveButton("Valider") { dialog, _ ->
-                    url = editText.text.toString()
-                    if (url.isNotEmpty()) {
-                        writeUrlToFile()
-                        updateCalendar()
-                    }
-                    dialog.dismiss()
-                }
-                .setNegativeButton("Annuler") { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
+            removeUrlFile()
+            startLoginActivity()
 
             true
         }
@@ -142,14 +147,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startLoginActivity() {
-        val intent = Intent(this, LoginScreen::class.java)
+        val intent = Intent(this, LoginActivity::class.java)
         startActivityForResult(intent, ACTIVITY_LOGIN)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if(requestCode == ACTIVITY_LOGIN && resultCode == RESULT_OK) {
-            url = data!!.getStringExtra(LoginScreen.ADE_URL_EXTRA)!!
-            //updateCalendar()
+            url = data!!.getStringExtra(LoginActivity.ADE_URL_EXTRA)!!
+
+            Log.d(":-:","MainActivity - onActivityResult")
+
+            writeUrlToFile()
+            updateCalendar()
         }
 
         super.onActivityResult(requestCode, resultCode, data)

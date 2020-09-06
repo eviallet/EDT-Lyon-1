@@ -27,7 +27,7 @@ class WeekViewWrapper(private val weekView: WeekView) {
             val weekData = WeekData()
             val weekNumber = courses[currentCourse].weekNumber()
 
-            while(courses[currentCourse].weekNumber() == weekNumber && currentCourse < courses.size) {
+            while(currentCourse < courses.size && courses[currentCourse].weekNumber() == weekNumber) {
                 weekData.add(EventCreator.createEventFromCourse(courses[currentCourse]))
                 currentCourse++
             }
