@@ -1,38 +1,35 @@
-package com.gueg.edt.weekview
+package com.gueg.edt.weekview.data
 
 import android.widget.Toast
 import com.gueg.edt.Course
 import com.gueg.edt.EventCreator
-import com.gueg.edt.weekview.data.WeekData
 import com.gueg.edt.weekview.view.WeekView
 import org.threeten.bp.LocalDate
 import org.threeten.bp.temporal.WeekFields
 import java.util.*
-import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class WeekViewWrapper(private val weekView: WeekView) {
 
-    private val weeks = ArrayList<WeekData>()
+    private val weeks = HashMap<Int, WeekData>()
     private var currentWeek = 0
         set(value) {
-            weekView.removeViews(1, weekView.childCount - 1)
+            weekView.removeEvents()
             field = value
             weekView.addEvents(weeks[currentWeek])
         }
 
     fun loadWeeks(courses : List<Course>) {
+        for(i in 1..52)
+            weeks[i] = WeekData()
+
         var currentCourse = 0
 
         while(currentCourse < courses.size) {
-            val weekData = WeekData()
             val weekNumber = courses[currentCourse].weekNumber()
 
-            while(currentCourse < courses.size && courses[currentCourse].weekNumber() == weekNumber) {
-                weekData.add(EventCreator.createEventFromCourse(courses[currentCourse]))
-                currentCourse++
-            }
-
-            weeks.add(weekData)
+            weeks[weekNumber]!!.add(EventCreator.createEventFromCourse(courses[currentCourse]))
+            currentCourse++
         }
 
         setWeek(LocalDate.now())
@@ -41,6 +38,7 @@ class WeekViewWrapper(private val weekView: WeekView) {
 
     fun setWeek(week: Int) {
         this.currentWeek = week
+        weekView.enableBackgroundColorForDate(week == LocalDate.now().get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear()))
     }
 
     fun setWeek(date: LocalDate) {

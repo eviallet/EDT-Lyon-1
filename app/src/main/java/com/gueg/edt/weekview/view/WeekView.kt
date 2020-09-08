@@ -4,12 +4,8 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Build
 import android.util.AttributeSet
-import android.util.Log
-import android.view.MotionEvent
-import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.RelativeLayout
-import androidx.annotation.RequiresApi
 import com.gueg.edt.R
 import com.gueg.edt.weekview.data.Event
 import com.gueg.edt.weekview.data.EventConfig
@@ -39,7 +35,6 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
 
     private val accentColor: Int
 
-    private val scaleGestureDetector: ScaleGestureDetector
     private val weekViewConfig: WeekViewConfig
 
     var eventConfig = EventConfig()
@@ -57,45 +52,8 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
         backgroundView.scalingFactor = weekViewConfig.scalingFactor
 
         addView(backgroundView)
-
-        scaleGestureDetector = ScaleGestureDetector(context, ScaleListener())
     }
 
-
-    private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-        override fun onScale(detector: ScaleGestureDetector): Boolean {
-            val factor = weekViewConfig.scalingFactor * detector.scaleFactor
-            // Don't let the object get too small or too large.
-            val scaleFactor = Math.max(0.25f, Math.min(factor, 3.0f))
-            weekViewConfig.scalingFactor = scaleFactor
-            backgroundView.scalingFactor = scaleFactor
-            Log.d(TAG, "Scale factor is $scaleFactor")
-            invalidate()
-            requestLayout()
-            return true
-        }
-    }
-
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        scaleGestureDetector.onTouchEvent(event)
-        return super.onTouchEvent(event)
-    }
-
-    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        super.dispatchTouchEvent(event)
-        return scaleGestureDetector.onTouchEvent(event)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    fun setEventTransitionName(transitionName: String) {
-        this.eventTransitionName = transitionName
-        for (childId in 0 until childCount) {
-            val child: View = getChildAt(childId)
-            if (child is EventView) {
-                child.setTransitionName(transitionName)
-            }
-        }
-    }
 
     fun setLessonClickListener(clickListener: (view: EventView) -> Unit) {
         this.clickListener = clickListener
@@ -119,8 +77,9 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
         }
     }
 
-    fun addEvents(weekData: WeekData) {
-        Log.d(TAG, "Adding ${weekData.getSingleEvents().size} weekData to week view")
+    fun addEvents(weekData: WeekData?) {
+        if(weekData == null)
+            return
 
         //backgroundView.updateTimes(weekData.earliestStart, weekData.latestEnd)
 
@@ -128,25 +87,20 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
             addEvent(event)
         }
 
-        // TODO: support multi day weekData
-        Log.d(TAG, " - Done adding weekData to timetable")
     }
 
     fun addEvent(event: Event.Single) {
         // enable weekend if not enabled yet
         when (event.date.dayOfWeek) {
             DayOfWeek.SATURDAY -> {
-                Log.i(TAG, "Enabling Saturday")
                 if (!backgroundView.days.contains(DayOfWeek.SATURDAY)) {
                     backgroundView.days.add(DayOfWeek.SATURDAY)
                 }
             }
             DayOfWeek.SUNDAY -> {
-                Log.i(TAG, "Enabling Saturday")
                 if (!backgroundView.days.contains(DayOfWeek.SATURDAY)) {
                     backgroundView.days.add(DayOfWeek.SATURDAY)
                 }
-                Log.i(TAG, "Enabling Sunday")
                 if (!backgroundView.days.contains(DayOfWeek.SUNDAY)) {
                     backgroundView.days.add(DayOfWeek.SUNDAY)
                 }
@@ -175,16 +129,21 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
         addView(lv)
     }
 
+    fun removeEvents() {
+        removeViews(1, childCount - 1)
+    }
+
+    fun enableBackgroundColorForDate(enable: Boolean) {
+        backgroundView.shouldDrawDayHighilight = enable
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val widthSize = MeasureSpec.getSize(widthMeasureSpec)
         val heightSize = MeasureSpec.getSize(heightMeasureSpec)
-        Log.v(TAG, "Measuring ($widthSize x $heightSize)")
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        Log.v(TAG, "Laying out timetable for the ${++layoutCount} time.")
-        Log.v(TAG, "l: $l, t: $t, r: $r, b: $b")
         super.onLayout(true, l, t, r, b)
         if (isInScreenshotMode) {
             backgroundView.setScreenshotMode(true)
@@ -194,7 +153,6 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
         val sundayEnabled = backgroundView.days.contains(DayOfWeek.SUNDAY)
 
         for (childIndex in 0 until childCount) {
-            Log.i(TAG, "child $childIndex of $childCount")
             val eventView: EventView
             val childView = getChildAt(childIndex)
             if (childView is EventView) {
@@ -207,7 +165,6 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
             val column: Int = DayOfWeekUtil.mapDayToColumn(eventView.event.date.dayOfWeek, saturdayEnabled, sundayEnabled)
             if (column < 0) {
                 // should not be necessary as wrong days get filtered before.
-                Log.v(TAG, "Removing view for event $eventView")
                 childView.setVisibility(View.GONE)
                 removeView(childView)
                 continue
@@ -244,15 +201,11 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
             val offset = Duration.between(startTime, lessonStart)
 
             val yOffset = offset.toMinutes() * weekViewConfig.scalingFactor
-            val top = context.dipToPixelF(yOffset) + backgroundView.topOffsetPx
+            val top = context.dipToPixelF(yOffset)
 
             val bottom = top + eventView.measuredHeight
             eventView.layout(left, top.roundToInt(), right, bottom.roundToInt())
         }
-    }
-
-    fun setScreenshotModeEnabled(enabled: Boolean) {
-        isInScreenshotMode = enabled
     }
 
     private fun overlaps(left: EventView, right: EventView): Boolean {
@@ -271,7 +224,4 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
         return lessonStartsWithing || lessonEndsWithing || lessonWithin
     }
 
-    companion object {
-        private const val TAG = "WeekView"
-    }
 }

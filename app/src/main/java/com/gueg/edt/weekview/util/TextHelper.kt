@@ -7,7 +7,7 @@ internal object TextHelper {
 
     fun fitText(text: String, maxTextSize: Float, maxWidth: Int, maxHeight: Int): Float {
         var hi = maxTextSize
-        var lo = 15f // min text size
+        var lo = 30f // min text size
         val threshold = 0.5f // How close we have to be
 
         val paint = Paint()

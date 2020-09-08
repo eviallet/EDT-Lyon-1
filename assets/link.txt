@@ -1,0 +1,1 @@
+http://adelb.univ-lyon1.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=31780,14992,15558,15642&projectId=2&calType=ical&firstDate=2020-09-07&lastDate=2020-09-26

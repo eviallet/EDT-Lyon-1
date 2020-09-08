@@ -1,6 +1,7 @@
 package com.gueg.edt
 
 import android.util.Log
+import android.widget.Toast
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import java.io.*
@@ -81,12 +82,12 @@ object Parser {
 
         val courses = ArrayList<Course>()
 
-        var shouldRead = true
+        var endReached = false
         var currentLine = 0
 
         val offsetFromUtc: Long = TimeZone.getDefault().getOffset(Date().time)/(1000*3600).toLong()
 
-        while(shouldRead) {
+        while(!endReached) {
             var line = list[currentLine]
 
             if(line == "BEGIN:VEVENT") {
@@ -94,7 +95,7 @@ object Parser {
                 var lastTag = ""
 
                 while(line != "END:VEVENT") {
-                    line = list[currentLine++]
+                    line = list[++currentLine]
                     if(!line.contains(":")) {
                         line = line.substring(1, line.length).replace("\r\n", "")
                         when(lastTag) {
@@ -130,21 +131,29 @@ object Parser {
                         "DESCRIPTION" -> {
                             while (value.startsWith("\\n"))
                                 value = value.replaceFirst("\\n", "")
-                            if (value.indexOf("(Exported") != -1)
-                                value = value.substring(0, value.indexOf("(Exported"))
                             course.description = value.replace("\\n", "  ")
                         }
                     }
                     lastTag = tag
                 }
 
+                course.description = course.description.substringBefore("(Exported")
                 courses.add(course)
+            } else {
+                currentLine++
             }
 
-            currentLine++
-            if(currentLine >= list.size)
-                shouldRead = false
+            if(line.contains("END:VCALENDAR"))
+                endReached = true
         }
+
+        var tagCount = 0
+        for(line in list)
+            if((line.contains("BEGIN:VEVENT")))
+                tagCount++
+        Log.d(":-:","Parser : extracted ${courses.size} courses of $tagCount events")
+        if(courses.size != tagCount)
+            Toast.makeText(activity, "${tagCount - courses.size} cours non extraits !!!", Toast.LENGTH_SHORT).show()
 
         return courses
     }

@@ -11,14 +11,14 @@ object EventCreator {
 
     private val coursesColor = HashMap<String, Int>()
 
-    private val colors = parseColors("#58afbf", "#35b9bd", "#bbbbbb", "#58afbf", "#58afbf")
+    private val colors = parseColors("#e79797", /*"#efb484",*/ "#efc989", /*"#c6c69c",*/ /* REPEAT */ "#b5eeb9", "#addfee", "#d2afea", "#efc989", "#c6c69c")
     private var currentColorIndex = 0
 
     fun createEventFromCourse(course: Course) : Event.Single {
+        val key = course.name.substring(0, if(course.name.length >= 5) 5 else course.name.length)
 
-        if(!coursesColor.containsKey(course.name))
-            coursesColor[course.name] = colors[currentColorIndex]++
-
+        if(!coursesColor.containsKey(key))
+            coursesColor[key] = colors[currentColorIndex++]
 
         return Event.Single(
             id = random.nextLong(),
@@ -28,8 +28,8 @@ object EventCreator {
             location = course.location,
             startTime = course.startTime,
             endTime = course.endTime,
-            textColor = Color.WHITE,
-            backgroundColor = coursesColor[course.name]!!
+            textColor = Color.BLACK,
+            backgroundColor = coursesColor[key]!!
         )
     }
 

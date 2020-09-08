@@ -5,7 +5,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
-import android.util.Log
 import android.view.View
 import com.gueg.edt.weekview.util.DayOfWeekUtil
 import com.gueg.edt.weekview.util.dipToPixelF
@@ -14,8 +13,6 @@ import org.threeten.bp.DayOfWeek
 import org.threeten.bp.Duration
 import org.threeten.bp.LocalDate
 import org.threeten.bp.LocalTime
-import org.threeten.bp.format.TextStyle
-import java.util.*
 import kotlin.math.roundToInt
 
 internal class WeekBackgroundView constructor(context: Context) : View(context) {
@@ -40,14 +37,17 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
         }
     }
 
-    lateinit var daysOfMonth: List<LocalDate>
-
     private var isInScreenshotMode = false
 
-    val topOffsetPx: Int = context.dipToPixelI(32f)
     private val leftOffset: Int = context.dipToPixelI(48f)
 
     private var drawCount = 0
+
+    var shouldDrawDayHighilight: Boolean = false
+        set(value) {
+            field = value
+            invalidate()
+        }
 
     val days: MutableList<DayOfWeek> = DayOfWeekUtil.createList()
             .toMutableList()
@@ -72,43 +72,36 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
     }
 
     override fun onDraw(canvas: Canvas) {
-        Log.d(TAG, "Drawing background for the ${++drawCount}. time.")
         super.onDraw(canvas)
         canvas.drawColor(Color.WHITE)
 
         canvas.drawHorizontalDividers()
         canvas.drawColumnsWithHeaders()
 
-        Log.d(TAG, "Screenshot mode? $isInScreenshotMode")
         if (!isInScreenshotMode && !isInEditMode) {
             drawNowIndicator(canvas)
         }
-        Log.d(TAG, "Drawing background completed.")
     }
 
     private fun drawNowIndicator(canvas: Canvas) {
         if (startTime.isBefore(LocalTime.now()) && endTime.isAfter(LocalTime.now())) {
-            Log.v(TAG, "Drawing now indicator")
             val nowOffset = Duration.between(startTime, LocalTime.now())
 
             val minutes = nowOffset.toMinutes()
-            val y = topOffsetPx + context.dipToPixelF(minutes * scalingFactor)
+            val y = context.dipToPixelF(minutes * scalingFactor)
             accentPaint.alpha = 200
-            canvas.drawLine(0f, y, canvas.width.toFloat(), y, accentPaint)
+            canvas.drawLine(0f, y, leftOffset*1f, y, accentPaint)
         }
     }
 
     private fun Canvas.drawHorizontalDividers() {
-        Log.d(TAG, "Drawing horizontal dividers")
         var localTime = startTime
         var last = LocalTime.MIN
         while (localTime.isBefore(endTime) && !last.isAfter(localTime)) {
             val offset = Duration.between(startTime, localTime)
-            Log.v(TAG, "Offset $offset")
-            val y = topOffsetPx + context.dipToPixelF(offset.toMinutes() * scalingFactor)
+            val y = context.dipToPixelF(offset.toMinutes() * scalingFactor)
             drawLine(0f, y, width.toFloat(), y, paintDivider)
 
-            // final String timeString = localTime.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT));
             val timeString = localTime.toString()
             drawMultiLineText(this, timeString, context.dipToPixelF(25f), y + context.dipToPixelF(20f), mPaintLabels)
 
@@ -116,17 +109,14 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
             localTime = localTime.plusHours(1)
         }
         val offset = Duration.between(startTime, localTime)
-        Log.v(TAG, "Offset + $offset")
         drawLine(0f, bottom.toFloat(), width.toFloat(), bottom.toFloat(), paintDivider)
     }
 
     private fun Canvas.drawColumnsWithHeaders() {
-        Log.v(TAG, "Drawing vertical dividers on canvas")
         val todayDay: DayOfWeek = LocalDate.now().dayOfWeek
         for ((column, dayId) in days.withIndex()) {
             drawLeftColumnDivider(column)
-            drawWeekDayName(dayId, column)
-            if (dayId == todayDay) {
+            if (dayId == todayDay && shouldDrawDayHighilight) {
                 drawDayHighlight(column)
             }
         }
@@ -146,12 +136,6 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
         drawRect(rect, accentPaint)
     }
 
-    private fun Canvas.drawWeekDayName(day: DayOfWeek, column: Int) {
-        val shortName = day.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-        val xLabel = (getColumnStart(column, false) + getColumnEnd(column, false)) / 2
-        drawText(shortName, xLabel.toFloat(), topOffsetPx / 2 + mPaintLabels.descent(), mPaintLabels)
-    }
-
     private fun drawMultiLineText(canvas: Canvas, text: String, initialX: Float, initialY: Float, paint: Paint) {
         var currentY = initialY
         text.split(" ")
@@ -162,13 +146,7 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
                 }
     }
 
-    /**
-     * Returns the offset (px!) from left for a given column.
-     * First column is the first weekday.
-     *
-     * @param column starting to count at 0
-     * @return offset in px
-     */
+
     internal fun getColumnStart(column: Int, considerDivider: Boolean): Int {
         val contentWidth: Int = width - leftOffset
         var offset: Int = leftOffset + contentWidth * column / days.size
@@ -188,7 +166,7 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
     }
 
     override fun onMeasure(widthMeasureSpec: Int, hms: Int) {
-        val height = topOffsetPx + context.dipToPixelF(getDurationMinutes() * scalingFactor) + paddingBottom
+        val height = context.dipToPixelF(getDurationMinutes() * scalingFactor) + paddingBottom
         val heightMeasureSpec2 = MeasureSpec.makeMeasureSpec(height.roundToInt(), MeasureSpec.EXACTLY)
         super.onMeasure(widthMeasureSpec, heightMeasureSpec2)
     }
@@ -196,39 +174,7 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
     fun setScreenshotMode(screenshotMode: Boolean) {
         isInScreenshotMode = screenshotMode
     }
-/*
-    fun updateTimes(startTime: LocalTime, endTime: LocalTime) {
-        if (startTime.isAfter(endTime)) {
-            throw IllegalArgumentException("Start time $startTime must be before end time $endTime")
-        }
-        var timesHaveChanged = false
 
-        if (startTime.isBefore(this.startTime)) {
-            this.startTime = startTime.truncatedTo(ChronoUnit.HOURS)
-            timesHaveChanged = true
-        }
-        if (endTime.isAfter(this.endTime)) {
-            if (endTime.isBefore(LocalTime.of(23, 0))) {
-                this.endTime = endTime.truncatedTo(ChronoUnit.HOURS).plusHours(1)
-            } else {
-                this.endTime = LocalTime.MAX
-            }
-            timesHaveChanged = true
-        }
-        if (this.startTime.isAfter(this.endTime)) throw IllegalArgumentException()
-
-        if (timesHaveChanged) {
-            requestLayout()
-        }
-    }
-*/
-
-    fun updateTimes(startTime: LocalTime, endTime: LocalTime) {
-        this.startTime = startTime
-        this.endTime = endTime
-
-        requestLayout()
-    }
 
     private fun getDurationMinutes(): Long {
         return Duration.between(startTime, endTime).toMinutes()
@@ -239,6 +185,5 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
          * Should be a multiple of 2 because of rounding. */
         private const val DIVIDER_WIDTH_PX: Int = 2
         private const val DIVIDER_COLOR = Color.LTGRAY
-        private const val TAG = "WeekBackgroundView"
     }
 }

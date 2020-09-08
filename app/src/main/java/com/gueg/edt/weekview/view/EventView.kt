@@ -7,7 +7,6 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.PaintDrawable
 import android.os.Debug
-import android.util.Log
 import android.view.ContextMenu.ContextMenuInfo
 import android.view.View
 import android.view.animation.Animation
@@ -31,7 +30,6 @@ class EventView(
 
 ) : View(context) {
 
-    private val TAG = javaClass.simpleName
     private val CORNER_RADIUS_PX = context.dipToPixelF(2f)
 
     private val textPaint: Paint by lazy { Paint().apply { isAntiAlias = true } }
@@ -71,8 +69,6 @@ class EventView(
 
     // TODO: clean up
     override fun onDraw(canvas: Canvas) {
-        Log.d(TAG, "Drawing ${event.description}")
-
         // only for debugging
         if (Debug.isDebuggerConnected()) {
             for (i in 0..weightSum) {
@@ -140,11 +136,9 @@ class EventView(
 
     private var measureCount = 0
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        Log.v(TAG, "Measuring ${event.description} ${measureCount++}")
         if (BuildConfig.DEBUG) {
             val debugWidth = ViewHelper.debugMeasureSpec(widthMeasureSpec)
             val debugHeight = ViewHelper.debugMeasureSpec(heightMeasureSpec)
-            Log.v(TAG, "-> width: $debugWidth\n-> height: $debugHeight")
         }
 
         val desiredHeightDp = event.duration.toMinutes() * scalingFactor
@@ -155,7 +149,6 @@ class EventView(
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        Log.d(TAG, "Laying out ${event.description}: changed[$changed] ($left, $top),($right, $bottom)")
         super.onLayout(changed, left, top, right, bottom)
     }
 
