@@ -9,7 +9,6 @@ import android.util.Log
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import org.threeten.bp.LocalDate
-import org.threeten.bp.Month
 
 
 class LoginActivity : Activity() {
@@ -89,8 +88,8 @@ class LoginActivity : Activity() {
 
         // construction de l'URL ADE
         val nowDate = LocalDate.now()
-        val startDate = nowDate.withDayOfMonth(1).withMonth(Month.SEPTEMBER.value)
-        val lastDate = nowDate.plusYears(1)
+        val startDate = nowDate.minusMonths(2)
+        val lastDate = nowDate.plusMonths(8)
 
         val url = DEFAULT_ADE_URL
             .replace("RESOURCES_NUMBER", cut)

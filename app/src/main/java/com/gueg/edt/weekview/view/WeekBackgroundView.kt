@@ -38,10 +38,7 @@ internal class WeekBackgroundView constructor(context: Context) : View(context) 
     }
 
     private var isInScreenshotMode = false
-
     private val leftOffset: Int = context.dipToPixelI(48f)
-
-    private var drawCount = 0
 
     var shouldDrawDayHighilight: Boolean = false
         set(value) {

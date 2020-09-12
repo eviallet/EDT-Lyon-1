@@ -13,6 +13,7 @@ import com.gueg.edt.weekview.data.WeekData
 import com.gueg.edt.weekview.data.WeekViewConfig
 import com.gueg.edt.weekview.util.Animation
 import com.gueg.edt.weekview.util.DayOfWeekUtil
+import com.gueg.edt.weekview.util.SwipeHelper
 import com.gueg.edt.weekview.util.dipToPixelF
 import org.threeten.bp.DayOfWeek
 import org.threeten.bp.Duration
@@ -27,7 +28,6 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
     private val overlapsWith = ArrayList<EventView>()
 
     private var isInScreenshotMode = false
-    private var layoutCount = 0
 
     private var clickListener: ((view: EventView) -> Unit)? = null
     private var contextMenuListener: OnCreateContextMenuListener? = null
@@ -36,8 +36,13 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
     private val accentColor: Int
 
     private val weekViewConfig: WeekViewConfig
+    var swipeHelper: SwipeHelper?= null
+    set(value) {
+        field = value
+        setOnTouchListener(swipeHelper)
+    }
 
-    var eventConfig = EventConfig()
+    private var eventConfig = EventConfig()
 
     init {
         val arr = context.obtainStyledAttributes(attributeSet, R.styleable.WeekView)
@@ -81,12 +86,8 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
         if(weekData == null)
             return
 
-        //backgroundView.updateTimes(weekData.earliestStart, weekData.latestEnd)
-
-        for (event in weekData.getSingleEvents()) {
+        for (event in weekData.getSingleEvents())
             addEvent(event)
-        }
-
     }
 
     fun addEvent(event: Event.Single) {
@@ -115,8 +116,7 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
 
         // mark active event
         val now = LocalTime.now()
-        if (LocalDate.now().dayOfWeek == event.date.dayOfWeek && // this day
-                event.startTime < now && event.endTime > now) {
+        if (LocalDate.now().dayOfWeek == event.date.dayOfWeek && event.startTime < now && event.endTime > now) {
             lv.animation = Animation.createBlinkAnimation()
         }
 
@@ -137,12 +137,6 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
         backgroundView.shouldDrawDayHighilight = enable
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val widthSize = MeasureSpec.getSize(widthMeasureSpec)
-        val heightSize = MeasureSpec.getSize(heightMeasureSpec)
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-    }
-
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(true, l, t, r, b)
         if (isInScreenshotMode) {
@@ -161,7 +155,6 @@ class WeekView(context: Context, attributeSet: AttributeSet) : RelativeLayout(co
                 continue
             }
 
-            // FIXME   lessonView.setShortNameEnabled(isShortNameEnabled);
             val column: Int = DayOfWeekUtil.mapDayToColumn(eventView.event.date.dayOfWeek, saturdayEnabled, sundayEnabled)
             if (column < 0) {
                 // should not be necessary as wrong days get filtered before.

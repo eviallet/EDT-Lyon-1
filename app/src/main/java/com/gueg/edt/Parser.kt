@@ -35,11 +35,6 @@ object Parser {
     }
 
     fun download(url: String, listener: DownloadListener) {
-        /*if(activity!!.isConnected()) {
-            Toast.makeText(activity, "Non connecté à Internet.", Toast.LENGTH_SHORT).show()
-            return
-        }*/
-
         Thread {
             val cn: URLConnection = URL(url).openConnection()
             cn.connect()

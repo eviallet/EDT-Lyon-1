@@ -6,19 +6,17 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.PaintDrawable
-import android.os.Debug
 import android.view.ContextMenu.ContextMenuInfo
 import android.view.View
-import android.view.animation.Animation
-import android.view.animation.ScaleAnimation
-import com.gueg.edt.BuildConfig
+import android.view.animation.AlphaAnimation
 import com.gueg.edt.weekview.data.Event
 import com.gueg.edt.weekview.data.EventConfig
 import com.gueg.edt.weekview.util.TextHelper
-import com.gueg.edt.weekview.util.ViewHelper
 import com.gueg.edt.weekview.util.dipToPixelF
 import com.gueg.edt.weekview.util.dipToPixelI
+import kotlin.math.min
 import kotlin.math.roundToInt
+
 
 /** this view is only constructed during runtime. */
 @SuppressLint("ViewConstructor")
@@ -67,65 +65,88 @@ class EventView(
         textPaint.color = event.textColor
     }
 
-    // TODO: clean up
     override fun onDraw(canvas: Canvas) {
-        // only for debugging
-        if (Debug.isDebuggerConnected()) {
-            for (i in 0..weightSum) {
-                val content = height - (paddingTop + paddingBottom)
-                val y = content * i / weightSum + paddingTop
-                canvas.drawLine(0f, y.toFloat(), canvas.width.toFloat(), y.toFloat(), textPaint)
-            }
-        }
 
         // description
-        val maxTextSize = TextHelper.fitText(subjectName, textPaint.textSize * 3, width - (paddingLeft + paddingRight), height / 4)
+        val maxTextSize = TextHelper.fitText(
+            subjectName,
+            textPaint.textSize * 3,
+            width - (paddingLeft + paddingRight),
+            height / 4
+        )
         textPaint.textSize = maxTextSize
-        textPaint.getTextBounds(subjectName, 0, subjectName.length, textBounds)
+
         var weight = weightStartTime + weightUpperText
         if (weight == 0) {
             weight++
         }
         val subjectY = getY(weight, weightTitle, textBounds)
-        canvas.drawText(subjectName, (width / 2 - textBounds.centerX()).toFloat(), subjectY.toFloat(), textPaint)
+        textPaint.getTextBounds(subjectName, 0, subjectName.length, textBounds)
 
-        textPaint.textSize = TextHelper.fitText("123456", maxTextSize, width / 2,
-                getY(position = 1, bounds = textBounds) - getY(position = 0, bounds = textBounds))
+        if(textBounds.width() > width) {
+            var drawnText = subjectName
+            while(textBounds.width() > width) {
+                drawnText = drawnText.substring(0, drawnText.length - 1)
+                textPaint.getTextBounds(drawnText, 0, drawnText.length, textBounds)
+            }
+            val endText = subjectName.substring(drawnText.length, drawnText.length + min(subjectName.length - drawnText.length, drawnText.length)).dropLast(3).plus("...")
+
+            canvas.drawText(drawnText, 5f, 0.98f * subjectY.toFloat() - textBounds.height() / 2, textPaint)
+
+            if(endText.length > 4)
+                canvas.drawText(endText, 5f, 0.98f * subjectY.toFloat() + textBounds.height() / 2, textPaint)
+        } else {
+            canvas.drawText(subjectName, 5f, subjectY.toFloat(), textPaint)
+        }
+
+
+        textPaint.textSize = TextHelper.fitText(
+            "123456", maxTextSize, width / 2,
+            getY(position = 1, bounds = textBounds) - getY(position = 0, bounds = textBounds)
+        )
+
+        textPaint.textAlign = Paint.Align.LEFT
 
         // start time
         if (config.showTimeStart) {
             val startText = event.startTime.toString()
             textPaint.getTextBounds(startText, 0, startText.length, textBounds)
-            canvas.drawText(startText, (textBounds.left + paddingLeft).toFloat(), (textBounds.height() + paddingTop).toFloat(), textPaint)
+            canvas.drawText(
+                startText,
+                (textBounds.left + paddingLeft).toFloat(),
+                (textBounds.height() + paddingTop).toFloat(),
+                textPaint
+            )
         }
 
         // end time
         if (config.showTimeEnd) {
             val endText = event.endTime.toString()
             textPaint.getTextBounds(endText, 0, endText.length, textBounds)
-            canvas.drawText(endText, (width - (textBounds.right + paddingRight)).toFloat(), (height - paddingBottom).toFloat(), textPaint)
+            canvas.drawText(
+                endText,
+                (width - (textBounds.right + paddingRight)).toFloat(),
+                (height - paddingBottom).toFloat(),
+                textPaint
+            )
         }
 
-        // upper text
-        if (config.showUpperText && event.upperText != null) {
-            textPaint.getTextBounds(event.upperText, 0, event.upperText.length, textBounds)
-            val typeY = getY(position = weightStartTime, bounds = textBounds)
-            canvas.drawText(event.upperText, (width / 2 - textBounds.centerX()).toFloat(), typeY.toFloat(), textPaint)
-        }
-
-        // subtitle
+        // subtitle = location
+        textPaint.textAlign = Paint.Align.LEFT
         if (config.showSubtitle && event.location != null) {
             textPaint.getTextBounds(event.location, 0, event.location.length, textBounds)
-            val teacherY = getY(position = weightStartTime + weightUpperText + weightTitle, bounds = textBounds)
-            canvas.drawText(event.location, (width / 2 - textBounds.centerX()).toFloat(), teacherY.toFloat(), textPaint)
+            val teacherY = getY(
+                position = weightStartTime + weightUpperText + weightTitle,
+                bounds = textBounds
+            )
+            canvas.drawText(
+                event.location,
+                5f, //(width / 2 - textBounds.centerX()).toFloat(),
+                1.02f * teacherY.toFloat(),
+                textPaint
+            )
         }
 
-        // lower text
-        if (config.showLowerText && event.lowerText != null) {
-            textPaint.getTextBounds(event.lowerText, 0, event.lowerText.length, textBounds)
-            val locationY = getY(position = weightStartTime + weightUpperText + weightTitle + weightSubTitle, bounds = textBounds)
-            canvas.drawText(event.lowerText, (width / 2 - textBounds.centerX()).toFloat(), locationY.toFloat(), textPaint)
-        }
     }
 
     private fun getY(position: Int, weight: Int = 1, bounds: Rect): Int {
@@ -134,13 +155,7 @@ class EventView(
         return y.roundToInt() - bounds.centerY()
     }
 
-    private var measureCount = 0
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (BuildConfig.DEBUG) {
-            val debugWidth = ViewHelper.debugMeasureSpec(widthMeasureSpec)
-            val debugHeight = ViewHelper.debugMeasureSpec(heightMeasureSpec)
-        }
-
         val desiredHeightDp = event.duration.toMinutes() * scalingFactor
         val desiredHeightPx = context.dipToPixelI(desiredHeightDp)
         val resolvedHeight = resolveSize(desiredHeightPx, heightMeasureSpec)
@@ -148,19 +163,11 @@ class EventView(
         setMeasuredDimension(width, resolvedHeight)
     }
 
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        super.onLayout(changed, left, top, right, bottom)
-    }
-
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        val anim = ScaleAnimation(
-                0f, 1f, // Start and end values for the X axis scaling
-                0f, 1f, // Start and end values for the Y axis scaling
-                Animation.RELATIVE_TO_SELF, 0.5f, // Pivot point of X scaling
-                Animation.RELATIVE_TO_SELF, 0.5f) // Pivot point of Y scaling
-        anim.fillAfter = true // Needed to keep the result of the animation
-        anim.duration = 1000
+        val anim = AlphaAnimation(0f, 1f)
+        anim.fillAfter = true
+        anim.duration = 400
         this.startAnimation(anim)
     }
 

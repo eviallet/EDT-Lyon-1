@@ -7,4 +7,18 @@
     <color name="fab_background_color">#FF4081</color>
     <color name="dialog_background_color">#fafafa</color>
     <color name="dialog_background_scrim">#99323232</color>
+
+    <array name="weekview_colors">
+        <item>#e79797</item>
+        <item>#efc989</item>
+        <item>#b5eeb9</item>
+        <item>#addfee</item>
+        <item>#d2afea</item>
+        <item>#58afbf</item>
+        <item>#43A078</item>
+        <item>#9859EC</item>
+        <item>#FFA431</item>
+        <item>#448AFF</item>
+        <item>#69F0AE</item>
+    </array>
 </resources>

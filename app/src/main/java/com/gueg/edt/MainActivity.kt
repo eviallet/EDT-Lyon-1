@@ -10,13 +10,16 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.gueg.edt.fab.DateActivity
 import com.gueg.edt.weekview.data.WeekViewWrapper
+import com.gueg.edt.weekview.util.SwipeHelper
 import com.gueg.edt.weekview.view.WeekView
 import com.kizitonwose.calendarview.CalendarView
 import com.kizitonwose.calendarview.model.CalendarDay
+import com.kizitonwose.calendarview.model.DayOwner
 import com.kizitonwose.calendarview.model.InDateStyle
 import com.kizitonwose.calendarview.ui.DayBinder
 import java.io.File
@@ -30,15 +33,11 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    // TODO grossir texte events
-    // TODO sélectionner 1 jour = zoom
-    // TODO calendrier via fab
-    // TODO non connecté à internet
-    // TODO si janvier, charger depuis septembre d'avant (année scolaire)
 
-    fun isConnected(): Boolean {
+    private fun isConnected(): Boolean {
         val cm = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-        return cm.activeNetworkInfo != null && cm.activeNetworkInfo.isConnected
+        val activeNetworkInfo = cm.activeNetworkInfo
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected
     }
 
 
@@ -66,17 +65,15 @@ class MainActivity : AppCompatActivity() {
         val fab = findViewById<FloatingActionButton>(R.id.btnCalendar)
         fab.setOnClickListener {
             val intent = Intent(this@MainActivity, DateActivity::class.java)
-            val options = ActivityOptions.makeSceneTransitionAnimation(
-                this@MainActivity,
-                fab,
-                getString(R.string.transition_dialog)
-            )
+            val options = ActivityOptions.makeSceneTransitionAnimation(this@MainActivity, fab, getString(R.string.transition_dialog))
             startActivityForResult(intent, ACTIVITY_DATE, options.toBundle())
         }
 
         // ====================================================================================
         // =================                   WEEKVIEW                     ===================
         // ====================================================================================
+
+        EventCreator.context = this
 
         weekView = findViewById(R.id.weekView)
         weekViewWrapper = WeekViewWrapper(weekView)
@@ -90,6 +87,21 @@ class MainActivity : AppCompatActivity() {
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
         }
+
+        val swipeHelper = SwipeHelper(this, object : SwipeHelper.OnSwipeListener {
+            override fun onSwipeLeft() {
+                calendarView.smoothScrollToDate(calendarView.findFirstVisibleDay()!!.date.plusWeeks(1))
+            }
+
+            override fun onSwipeRight() {
+                calendarView.smoothScrollToDate(calendarView.findFirstVisibleDay()!!.date.minusWeeks(1))
+            }
+
+            override fun onSwipeDown() {}
+            override fun onSwipeUp() {}
+        })
+        weekView.swipeHelper = swipeHelper
+
 
 
         // ====================================================================================
@@ -122,7 +134,6 @@ class MainActivity : AppCompatActivity() {
                     container.dayNumber.text = day.date.dayOfMonth.toString()
                     container.monthText.text = monthText
                 }
-
             }
         }
         calendarView.updateMonthConfiguration(
@@ -131,19 +142,18 @@ class MainActivity : AppCompatActivity() {
             hasBoundaries = false
         )
         val currentMonth = YearMonth.now()
-        val firstMonth = currentMonth.minusMonths(10)
-        val lastMonth = currentMonth.plusMonths(10)
+        val firstMonth = currentMonth.minusMonths(2)
+        val lastMonth = currentMonth.plusMonths(8)
         val firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek
         calendarView.setup(firstMonth, lastMonth, firstDayOfWeek)
-        calendarView.scrollToDate(LocalDate.now())
 
-        calendarView.monthScrollListener = { month ->
-            weekViewWrapper.setWeek(
-                month.weekDays[0][0].date.get(
-                    WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear()
-                )
-            )
-        }
+        var now = LocalDate.now()
+        if(now.dayOfWeek == DayOfWeek.SATURDAY || now.dayOfWeek == DayOfWeek.SUNDAY)
+            while(now.dayOfWeek != DayOfWeek.MONDAY)
+                now = now.plusDays(1)
+        calendarView.scrollToDate(now)
+
+        calendarView.monthScrollListener = { month -> weekViewWrapper.setWeek(month.weekDays[0][0].date.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear())) }
 
 
         // ====================================================================================
@@ -177,11 +187,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateCalendar() {
-        Parser.download(url, object : Parser.DownloadListener {
-            override fun onDownloadFinished() {
-                updateWeekView()
-            }
-        })
+        if(isConnected()) {
+            weekView.removeEvents()
+            Parser.download(url, object : Parser.DownloadListener {
+                override fun onDownloadFinished() {
+                    updateWeekView()
+                }
+            })
+        } else {
+            Toast.makeText(this, "Non connecté à Internet.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun updateWeekView() {
@@ -227,7 +242,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_refresh -> {
-            weekView.removeEvents()
             updateCalendar()
             true
         }
@@ -235,7 +249,6 @@ class MainActivity : AppCompatActivity() {
         R.id.action_url -> {
             removeUrlFile()
             startLoginActivity()
-
             true
         }
 
@@ -260,7 +273,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         if(requestCode == ACTIVITY_DATE && resultCode == RESULT_OK) {
+            val year = data!!.getIntExtra("YEAR", LocalDate.now().year)
+            val month = data.getIntExtra("MONTH", LocalDate.now().monthValue)
+            val day = data.getIntExtra("DAY", LocalDate.now().dayOfMonth)
+            val date = LocalDate.of(year, month, day)
 
+            calendarView.smoothScrollToMonth(YearMonth.of(year, month))
+            calendarView.smoothScrollToDate(date, DayOwner.THIS_MONTH)
         }
 
         super.onActivityResult(requestCode, resultCode, data)
