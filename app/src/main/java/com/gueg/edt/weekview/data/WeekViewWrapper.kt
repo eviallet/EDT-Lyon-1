@@ -31,8 +31,6 @@ class WeekViewWrapper(private val weekView: WeekView) {
             weeks[weekNumber]!!.add(EventCreator.createEventFromCourse(courses[currentCourse]))
             currentCourse++
         }
-
-        setWeek(LocalDate.now())
     }
 
 

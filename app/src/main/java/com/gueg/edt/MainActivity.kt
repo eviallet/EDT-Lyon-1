@@ -90,11 +90,11 @@ class MainActivity : AppCompatActivity() {
 
         val swipeHelper = SwipeHelper(this, object : SwipeHelper.OnSwipeListener {
             override fun onSwipeLeft() {
-                calendarView.smoothScrollToDate(calendarView.findFirstVisibleDay()!!.date.plusWeeks(1))
+                calendarView.scrollToDate(calendarView.findFirstVisibleDay()!!.date.plusWeeks(1))
             }
 
             override fun onSwipeRight() {
-                calendarView.smoothScrollToDate(calendarView.findFirstVisibleDay()!!.date.minusWeeks(1))
+                calendarView.scrollToDate(calendarView.findFirstVisibleDay()!!.date.minusWeeks(1))
             }
 
             override fun onSwipeDown() {}
@@ -203,6 +203,9 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             val courses = Parser.extract()
             weekViewWrapper.loadWeeks(courses)
+            val weekNo : Int? = calendarView.findFirstVisibleDay()?.date?.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear())
+            if(weekNo != null)
+                weekViewWrapper.setWeek(weekNo)
         }
     }
 
@@ -278,8 +281,8 @@ class MainActivity : AppCompatActivity() {
             val day = data.getIntExtra("DAY", LocalDate.now().dayOfMonth)
             val date = LocalDate.of(year, month, day)
 
-            calendarView.smoothScrollToMonth(YearMonth.of(year, month))
-            calendarView.smoothScrollToDate(date, DayOwner.THIS_MONTH)
+            calendarView.scrollToMonth(YearMonth.of(year, month))
+            calendarView.scrollToDate(date, DayOwner.THIS_MONTH)
         }
 
         super.onActivityResult(requestCode, resultCode, data)
