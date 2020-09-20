@@ -180,7 +180,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if(Parser.shouldDownload())
+        if(Parser.shouldDownload() && isConnected())
             updateCalendar()
         else
             updateWeekView()
