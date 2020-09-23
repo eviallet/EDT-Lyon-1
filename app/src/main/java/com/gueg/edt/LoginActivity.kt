@@ -24,7 +24,7 @@ class LoginActivity : Activity() {
     private val URL_SCHEDULE = "https://edt.univ-lyon1.fr"
     private val URL_END_PAGE = "https://sciences-licence.univ-lyon1.fr/"
 
-    private val DEFAULT_ADE_URL = "http://adelb.univ-lyon1.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=RESOURCES_NUMBER&projectId=2&calType=ical&firstDate=FIRST_DATE&lastDate=LAST_DATE"
+    private val DEFAULT_ADE_URL = "https://adelb.univ-lyon1.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=RESOURCES_NUMBER&projectId=2&calType=ical&firstDate=FIRST_DATE&lastDate=LAST_DATE"
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {

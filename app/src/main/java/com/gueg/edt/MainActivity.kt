@@ -188,7 +188,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateCalendar() {
         if(isConnected()) {
-            weekView.removeEvents()
             Parser.download(url, object : Parser.DownloadListener {
                 override fun onDownloadFinished() {
                     updateWeekView()
@@ -201,11 +200,16 @@ class MainActivity : AppCompatActivity() {
 
     fun updateWeekView() {
         runOnUiThread {
-            val courses = Parser.extract()
-            weekViewWrapper.loadWeeks(courses)
-            val weekNo : Int? = calendarView.findFirstVisibleDay()?.date?.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear())
-            if(weekNo != null)
-                weekViewWrapper.setWeek(weekNo)
+            try {
+                val courses = Parser.extract()
+                weekView.removeEvents()
+                weekViewWrapper.loadWeeks(courses)
+                val weekNo: Int? = calendarView.findFirstVisibleDay()?.date?.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear())
+                if (weekNo != null)
+                    weekViewWrapper.setWeek(weekNo)
+            } catch (e: Exception) {
+                Toast.makeText(this,"Erreur de mise à jour de l'emploi du temps.",Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
