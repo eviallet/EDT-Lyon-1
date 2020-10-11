@@ -175,15 +175,12 @@ class MainActivity : AppCompatActivity() {
 
         Log.d(":-:", "MainActivity - onCreate - reading URL from cache")
 
-        if(!readUrlFromFile()) {
-            startLoginActivity()
-            return
-        }
-
-        if(Parser.shouldDownload() && isConnected())
+        if(isConnected())
             updateCalendar()
-        else
+        else {
+            Toast.makeText(this, "Non connecté à Internet.", Toast.LENGTH_SHORT).show()
             updateWeekView()
+        }
     }
 
     private fun updateCalendar() {
