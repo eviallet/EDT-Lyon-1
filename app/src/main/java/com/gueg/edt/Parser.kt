@@ -21,7 +21,7 @@ object Parser {
     }
 
     fun shouldDownload() : Boolean {
-        val file = File(activity!!.cacheDir, SCHEDULE_FILENAME)
+        val file = File(activity!!.filesDir, SCHEDULE_FILENAME)
         if(!file.exists())
             return true
 
@@ -42,7 +42,7 @@ object Parser {
             val bytes = stream.readBytes()
             stream.close()
 
-            val file = File(activity!!.cacheDir, SCHEDULE_FILENAME)
+            val file = File(activity!!.filesDir, SCHEDULE_FILENAME)
             if(file.exists())
                 file.delete()
 
@@ -57,7 +57,7 @@ object Parser {
 
         // ========== Load text from downloaded or cached file ==========
 
-        val file = File(activity!!.cacheDir, SCHEDULE_FILENAME)
+        val file = File(activity!!.filesDir, SCHEDULE_FILENAME)
         val list = ArrayList<String>()
 
         try {

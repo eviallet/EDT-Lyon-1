@@ -173,6 +173,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        if(!readUrlFromFile()) {
+            startLoginActivity()
+            return
+        }
+
         Log.d(":-:", "MainActivity - onCreate - reading URL from cache")
 
         if(isConnected())
@@ -211,7 +216,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun readUrlFromFile() : Boolean {
-        val file = File(cacheDir, URL_FILENAME)
+        val file = File(filesDir, URL_FILENAME)
 
         if(!file.exists())
             return false
@@ -222,7 +227,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun writeUrlToFile() {
-        val file = File(cacheDir, URL_FILENAME)
+        val file = File(filesDir, URL_FILENAME)
 
         if(file.exists())
             file.delete()
@@ -233,7 +238,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun removeUrlFile() {
-        val file = File(cacheDir, URL_FILENAME)
+        val file = File(filesDir, URL_FILENAME)
 
         if(file.exists())
             file.delete()
