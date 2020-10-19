@@ -36,20 +36,25 @@ object Parser {
 
     fun download(url: String, listener: DownloadListener) {
         Thread {
-            val cn: URLConnection = URL(url).openConnection()
-            cn.connect()
-            val stream: InputStream = cn.getInputStream()
-            val bytes = stream.readBytes()
-            stream.close()
+            try {
+                val cn: URLConnection = URL(url).openConnection()
+                cn.connect()
+                val stream: InputStream = cn.getInputStream()
+                val bytes = stream.readBytes()
+                stream.close()
 
-            val file = File(activity!!.filesDir, SCHEDULE_FILENAME)
-            if(file.exists())
-                file.delete()
+                val file = File(activity!!.filesDir, SCHEDULE_FILENAME)
+                if(file.exists())
+                    file.delete()
 
-            file.createNewFile()
-            file.writeBytes(bytes)
+                file.createNewFile()
+                file.writeBytes(bytes)
 
-            listener.onDownloadFinished()
+                listener.onDownloadFinished()
+            } catch (e : IOException) {
+                listener.onDownloadError()
+            }
+
         }.start()
     }
 
@@ -155,5 +160,6 @@ object Parser {
 
     interface DownloadListener {
         fun onDownloadFinished()
+        fun onDownloadError()
     }
 }

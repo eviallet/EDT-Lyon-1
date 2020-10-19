@@ -5,18 +5,17 @@ apply plugin: 'kotlin-android-extensions'
 android {
     signingConfigs {
         signing {
-            storeFile file('C:\\Users\\Gueg\\OneDrive\\Progra\\Android\\Android Signing\\TCLWatcher\\keystore.jks')
+            storeFile file('~/Android/AndroidSigning.jks')
             storePassword '123456'
             keyAlias 'key0'
             keyPassword '123456'
         }
     }
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    compileSdkVersion 30
     defaultConfig {
         applicationId "com.gueg.edt"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
         signingConfig signingConfigs.signing
