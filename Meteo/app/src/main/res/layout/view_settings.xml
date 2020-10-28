@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/view_settings_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:background="@android:color/white">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="7dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="Prévisions pour une ville : "
+                android:textColor="@android:color/black"
+
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="5dp"/>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+
+                android:layout_margin="10dp">
+                <ImageView
+                    android:id="@+id/view_settings_search_pic"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+
+                    android:src="@drawable/ic_search"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"/>
+                <EditText
+                    android:id="@+id/view_settings_search_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:layout_toStartOf="@id/view_settings_search_pic"
+                    android:layout_marginEnd="5dp"
+                    android:layout_centerVertical="true"
+
+                    android:maxLines="1"
+                    android:inputType="textShortMessage"/>
+            </RelativeLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/view_settings_rv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="7dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="7dp"
+            android:orientation="horizontal"
+
+            android:layout_gravity="center"
+
+            android:weightSum="3">
+
+            <Button
+                android:id="@+id/view_settings_add_city"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text=""
+                android:drawableStart="@drawable/ic_add"
+                android:drawablePadding="4dp"
+
+                android:layout_margin="5dp"
+                style="@style/Widget.AppCompat.Button.Borderless"
+
+                android:layout_weight="1"/>
+
+
+            <Button
+                android:id="@+id/view_settings_default_city"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text=""
+                android:drawableStart="@drawable/ic_default"
+                android:drawablePadding="4dp"
+
+                android:layout_margin="5dp"
+                style="@style/Widget.AppCompat.Button.Borderless"
+
+                android:layout_weight="1"/>
+
+
+            <Button
+                android:id="@+id/view_settings_remove_city"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text=""
+                android:drawableStart="@drawable/ic_delete"
+                android:drawablePadding="4dp"
+
+                android:layout_margin="5dp"
+                style="@style/Widget.AppCompat.Button.Borderless"
+
+                android:layout_weight="1"/>
+
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="7dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+
+            android:layout_margin="10dp">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:tint="@android:color/black"
+                android:src="@drawable/ic_network"
+                android:layout_marginEnd="10dp"
+
+                android:layout_gravity="center_vertical"/>
+
+            <Switch
+                android:id="@+id/view_settings_default_website"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:text="Meteociel"
+                android:textColor="@android:color/black"
+
+                android:layout_margin="5dp"/>
+
+        </LinearLayout>>
+
+    </androidx.cardview.widget.CardView>
+</LinearLayout>
