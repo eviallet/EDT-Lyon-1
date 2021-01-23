@@ -196,11 +196,11 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun onDownloadError() {
-                    Toast.makeText(this@MainActivity, "Erreur de connexion à ADE.", Toast.LENGTH_SHORT).show()
+                    runOnUiThread { Toast.makeText(this@MainActivity, "Erreur de connexion à ADE.", Toast.LENGTH_SHORT).show() }
                 }
             })
         } else {
-            Toast.makeText(this, "Non connecté à Internet.", Toast.LENGTH_SHORT).show()
+            runOnUiThread { Toast.makeText(this, "Non connecté à Internet.", Toast.LENGTH_SHORT).show() }
         }
     }
 

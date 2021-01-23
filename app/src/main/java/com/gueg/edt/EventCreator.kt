@@ -18,14 +18,14 @@ object EventCreator {
 
     private val coursesColor = HashMap<String, Int>()
 
-    private var colors: IntArray ?= null
+    private lateinit var colors: IntArray
     private var currentColorIndex = 0
 
     fun createEventFromCourse(course: Course) : Event.Single {
         val key = course.name.substring(0, if(course.name.length >= 5) 5 else course.name.length)
 
         if(!coursesColor.containsKey(key))
-            coursesColor[key] = colors!![currentColorIndex++]
+            coursesColor[key] = colors[currentColorIndex++ % colors.size]
 
         return Event.Single(
             id = random.nextLong(),
